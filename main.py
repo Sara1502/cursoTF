@@ -12,3 +12,4 @@ plt.rcParams['figure.figsize'] = [15, 15]
 data.hist();
 
 scatter_matrix(data);
+plt.show()

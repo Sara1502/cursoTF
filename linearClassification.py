@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -46,3 +47,12 @@ plt.plot(r.history['loss'], label='loss')
 plt.plot(r.history['val_loss'], label='val_loss')
 plt.legend();
 plt.show()
+
+p = model.predict(X_test)
+print(p)
+
+p = np.round(p).flatten()
+
+print(p)
+print("Precisão calculada manualmente: ", np.mean(p == y_test))
+print("Avaliação do output: ", model.evaluate(X_test, y_test))

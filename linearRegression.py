@@ -46,3 +46,15 @@ model.layers[0].get_weights()
 a = model.layers[0].get_weights[0][0, 0]
 
 print(np.log(2) / a)
+
+Yhat = model.predict(X).flatten()
+plt.scatter(X, Y)
+plt.plot(X, Yhat)
+
+w, b = model.layers[0].get_weights()
+
+X = X.reshape(-1, 1)
+
+Yhat2 = (X.dot(w) + b).flatten()
+
+np.allclose(Yhat, Yhat2)

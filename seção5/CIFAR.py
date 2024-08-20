@@ -1,8 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras.layers import Input, Conv2D, Dense, Flatten, Dropout, GlobalMaxPooling2D
-from tensorflow.keras.models import Model
 from sklearn.metrics import confusion_matrix
 import itertools
 
@@ -17,17 +15,17 @@ print('y_train.shape: ', y_train.shape)
 k = len(set(y_train))
 print('Numero de classes: ', k)
 
-i = Input(shape=x_train[0].shape)
-x = Conv2D(32, (3, 3), strides=2, activation='relu') (i)
-x = Conv2D(64, (3, 3), strides=2, activation='relu') (x)
-x = Conv2D(128, (3, 3), strides=2, activation='relu') (x)
-x = Flatten() (x)
-x = Dropout(0.2) (x)
-x = Dense(1024, activation='relu') (x)
-x = Dropout(0.2) (x)
-x = Dense(k, activation='softmax') (x)
+i = tf.keras.layers.Input(shape=x_train[0].shape)
+x = tf.keras.layers.Conv2D(32, (3, 3), strides=2, activation='relu') (i)
+x = tf.keras.layers.Conv2D(64, (3, 3), strides=2, activation='relu') (x)
+x = tf.keras.layers.Conv2D(128, (3, 3), strides=2, activation='relu') (x)
+x = tf.keras.layers.Flatten() (x)
+x = tf.keras.layers.Dropout(0.2) (x)
+x = tf.keras.layers.Dense(1024, activation='relu') (x)
+x = tf.keras.layers.Dropout(0.2) (x)
+x = tf.keras.layers.Dense(k, activation='softmax') (x)
 
-model = Model(i, x)
+model = tf.keras.models.Model(i, x)
 
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',

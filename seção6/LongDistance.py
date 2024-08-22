@@ -1,5 +1,5 @@
 import tensorflow as tf
-from keras._tf_keras.keras.layers import Input, SimpleRNN, GRU, LSTM, Dense, Flatten, GlobalMaxPool2D
+from keras._tf_keras.keras.layers import Input, SimpleRNN, GRU, LSTM, Dense, Flatten, GlobalMaxPool1D
 from keras._tf_keras.keras.models import Model
 from keras._tf_keras.keras.optimizers import SGD, Adam
 
@@ -106,6 +106,35 @@ model.compile(
 r = model.fit(
     inputs, Y,
     epochs=200,
+    validation_split=0.5
+)
+
+plt.plot(r.history['loss'], label='loss')
+plt.plot(r.history['val_loss'], label='val_loss')
+plt.legend()
+plt.show()
+
+plt.plot(r.history['accuracy'], label='acc')
+plt.plot(r.history['val_accuracy'], label='val_acc')
+plt.legend()
+plt.show()
+
+#Mais facil
+inputs = np.expand_dims(X, -1)
+i = Input(shape=(T, D))
+
+x = GlobalMaxPool1D(5) (i)
+x = Dense(1, activation='sigmoid') (x)
+model = Model(i, x)
+model.compile(
+    loss='binary_crossentropy',
+    optimizer=Adam(lr=0.01),
+    metrics=['accuracy'],
+)
+
+r = model.fit(
+    inputs, Y,
+    epochs=100,
     validation_split=0.5
 )
 

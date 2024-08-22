@@ -25,7 +25,7 @@ N = len(X)
 print('X.shape ', X.shape, 'Y.shape ', Y.shape)
 
 i = tf.keras.layers.Input(shape=(T, 1))
-x = tf.keras.layers.Dense(1) (x)
+x = tf.keras.layers.Dense(1) (i)
 model = tf.keras.models.Model(i, x)
 model.compile(
     loss='mse',

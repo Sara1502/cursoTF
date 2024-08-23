@@ -1,7 +1,7 @@
 import tensorflow as tf
-from keras._tf_keras.keras.layers import Input, Dense, GlobalAveragePooling1D
+from keras._tf_keras.keras.layers import Input, Dense, GlobalMaxPooling1D
+from keras._tf_keras.keras.layers import Conv1D, MaxPooling1D, Embedding
 from keras._tf_keras.keras.models import Model
-from keras._tf_keras.keras.layers import LSTM, Embedding
 from keras._tf_keras.keras.preprocessing.text import Tokenizer
 from keras._tf_keras.keras.preprocessing.sequence import pad_sequences
 
@@ -31,7 +31,6 @@ tokenizer.fit_on_texts(df_train)
 sequences_train = tokenizer.texts_to_sequences(df_train)
 sequences_test = tokenizer.texts_to_sequences(df_test)
 
-
 word2idx = tokenizer.word_index
 V = len(word2idx)
 print('Found %s unique tokens.' % V)
@@ -46,12 +45,15 @@ print('Shape of data test tensor: ', data_test.shape)
 
 #Criar modelo
 D = 20
-M = 15
 
 i = Input(shape=(T, ))
 x = Embedding(V + 1, D) (i)
-x = LSTM(M, return_sequences=True) (x)
-x = GlobalAveragePooling1D() (x)
+x = Conv1D(32, 3, activation='relu') (x)
+x = MaxPooling1D(3) (x)
+x = Conv1D(64, 3, activation='relu') (x)
+x = MaxPooling1D(3) (x)
+x = Conv1D(128, 3, activation='relu') (x)
+x = GlobalMaxPooling1D() (x)
 x = Dense(1, activation='sigmoid') (x)
 
 model = Model(i, x)
@@ -66,7 +68,7 @@ print('Training Model...')
 r = model.fit(
     data_train,
     Ytrain,
-    epochs=10,
+    epochs=5    ,
     validation_data=(data_test, Ytest)
 )
 

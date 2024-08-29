@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 import tensorflow as tf
 from keras._tf_keras.keras.layers import Input, Dense
@@ -240,3 +241,94 @@ class DQNAgent(object):
         
     def save(self, name):
         self.model.load_weightd(name)
+
+
+def play_one_episode(agent, env, is_train):
+    state = env.reset()
+    state = get_scaler.transform([state])
+    done = False
+
+    while not done:
+        action = agent.act(state)
+        next_state, reward, done, info = env.step(action)
+        next_state = get_scaler.tranform([next_state])
+        if is_train =='train':
+            agent.updade_replay_memory(state, action, reward, next_state, done)
+            agent.replay(batch_size)
+        state = next_state
+    
+    return info['cur_val']
+
+
+if __name__ == '__main__':
+    
+    models_folder = 'rl_trader_models'
+    rewards_folder = 'rl_trader_reward'
+    num_episodes = 2000
+    batch_size = 32
+    initial_investment = 20000
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--mode', type=str, required=True, help='either "train" or "test" ')
+
+    args = parser.parse_args()
+
+    maybe_make_dir(models_folder)
+    maybe_make_dir(rewards_folder)
+
+    data = get_data()
+    n_timesteps, n_stocks = data.shape
+
+    n_train = n_timesteps // 2
+
+    train_data = data[:n_train]
+    test_data = data[n_train:]
+
+    env = MultiStockEnv(train_data, initial_investment)
+    state_size = env.state_dim
+    action_size = len(env.action_space)
+    agent = DQNAgent(state_size, action_size)
+    scaler = get_scaler(env)
+
+    portfolio_value = []
+
+    if args.mode == 'test':
+        with open(f'{models_folder}/scaler.pkl', 'rb') as f:
+            scaler = pickle.load(f)
+
+            env = MultiStockEnv(test_data, initial_investment)
+
+            agent.epsilon = 0.01
+
+            agent.load(f'{models_folder}/dqn.h5')
+
+        for e in range(num_episodes):
+            t0 = datetime.now()
+            val = play_one_episode(agent, env, args.mode)
+            dt = datetime.now() - t0
+            print(f"episode: {e + 1}/{num_episodes}, episode end value: {val:.2f}, duration: {dt}")
+
+
+        if args.mode == 'train':
+            agent.save(f'{models_folder}/dqn.h5')
+
+            with open(f'{models_folder}/scaler.pkl', 'wb') as f:
+                pickle.dump(scaler, f)
+
+            
+        np.save(f'{rewards_folder}/{args.mode}.npy', portfolio_value)
+
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--mode', type=str, required=True, help='either "train" or "test" ')
+args = parser.parse_args()
+
+a = np.load(f'linear_rl_trader_reward/{args.mode}.npy')
+
+print(f"average reward: {a.mean():.2f}, min: {a.min():.2f}, max: {a.max():.2f}")
+
+plt.hist(a, bins=20)
+plt.title(args.mode)
+plt.show()

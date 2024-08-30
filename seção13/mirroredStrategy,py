@@ -1,0 +1,74 @@
+import tensorflow as tf
+from keras._tf_keras.keras.layers import Input, Conv2D, Dense, Flatten, Dropout, GlobalMaxPooling2D, MaxPooling2D, BatchNormalization
+from keras._tf_keras.keras.models import Model
+
+import requests
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import subprocess
+import tempfile
+
+
+cifar10 = tf.keras.datasets.cifar10
+
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+y_train, y_test = y_train.flatten(), y_test.flatten()
+print("x_train.shape", x_train.shape) 
+print("x_train.shape", y_train.shape)
+
+
+K = len((set(y_train)))
+print("number of classes: ", K)
+
+
+def create_model():
+    i = Input(shape=x_train[0].shape)
+
+    x = Conv2D(32, (3, 3), activation='relu', padding='same') (i)
+    x = BatchNormalization() (x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same') (x)
+    x = BatchNormalization() (x)
+    x = MaxPooling2D((2, 2)) (x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same') (x)
+    x = BatchNormalization() (x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same') (x)
+    x = BatchNormalization() (x)
+    x = MaxPooling2D((2, 2)) (x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same') (x)
+    x = BatchNormalization() (x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same') (x)
+    x = BatchNormalization() (x)
+    x = MaxPooling2D((2, 2)) (x)
+
+    x = Flatten() (x)
+    x = Dropout(0.2) (x)
+    x = Dense(1024, activation='relu') (x)
+    x = Dropout(0.2) (x)
+    x = Dense(K, activation='softmax') (x)
+
+    model = Model(i, x)
+    return model
+
+strategy = tf.distribute.MirroredStrategy()
+
+print(f'Number of devices: {strategy.num_replicas_in_sync}')
+
+with strategy.scope():
+    model = create_model()
+
+    model.compile(loss='sparce_categorical_crossentropy',
+                  optimizer='adam',
+                  metrics=['accuracy'])
+    
+
+r = model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=128, epochs=15)
+
+
+
+model2 = create_model()
+model2.compile(loss='sparce_categorical_crossentropy',
+                optimizer='adam',
+                metrics=['accuracy'])
+r = model2.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=128, epochs=5)
